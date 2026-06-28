@@ -31,17 +31,25 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Handle resource paths when packaged with PyInstaller
+# App folders
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Handle resource paths when packaged with PyInstaller (static/templates inside temp _MEIPASS)
 def get_resource_path(relative_path):
     if hasattr(sys, '_MEIPASS'):
         return os.path.join(sys._MEIPASS, relative_path)
     return os.path.join(os.path.abspath(BASE_DIR), relative_path)
 
-# App folders
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# Handle persistent storage paths (database/logs beside the actual .exe file, not in temp folder)
+def get_storage_path(relative_path):
+    if hasattr(sys, 'frozen'):
+        exe_dir = os.path.dirname(sys.executable)
+        return os.path.join(exe_dir, relative_path)
+    return os.path.join(os.path.abspath(BASE_DIR), relative_path)
+
 TEMPLATES_DIR = get_resource_path("templates")
 STATIC_DIR = get_resource_path("static")
-UPLOAD_DIR = os.path.join(BASE_DIR, "uploads")
+UPLOAD_DIR = get_storage_path("uploads")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 # State manager class
@@ -54,8 +62,8 @@ class CampaignManager:
         self.total_contacts = 0
         self.sent_count = 0
         self.failed_count = 0
-        self.sent_emails_file = os.path.join(BASE_DIR, "sent_emails.txt")
-        self.logs_file = os.path.join(BASE_DIR, "campaign_logs.txt")
+        self.sent_emails_file = get_storage_path("sent_emails.txt")
+        self.logs_file = get_storage_path("campaign_logs.txt")
         
         # Configure logging to write to campaign_logs.txt
         self.logger = logging.getLogger("campaign")
@@ -225,6 +233,9 @@ def run_campaign_worker(
     delay_max: int,
     dry_run: bool = False
 ):
+    sender_email = sender_email.strip()
+    app_password = app_password.strip()
+    
     campaign.is_running = True
     campaign.should_stop = False
     campaign.progress_percent = 0
@@ -445,4 +456,4 @@ if __name__ == "__main__":
     print("Dashboard server starting...")
     print("Opening http://localhost:8000 in your browser...")
     threading.Thread(target=open_browser, daemon=True).start()
-    uvicorn.run("app:app", host="localhost", port=8000, log_level="info")
+    uvicorn.run(app, host="localhost", port=8000, log_level="info")
