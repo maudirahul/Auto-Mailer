@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HR Email Campaign Dashboard</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="background-glows">
+    <div class="glow glow-1"></div>
+    <div class="glow glow-2"></div>
+  </div>
+
+  <div class="container">
+    <header class="app-header">
+      <div class="logo">📧</div>
+      <div>
+        <h1>HR Email Campaign Dashboard</h1>
+        <p class="subtitle">Automated recruitment reach out with safety delays and real-time status</p>
+      </div>
+    </header>
+
+    <div class="dashboard-grid">
+      <!-- Left Column: Controls & Configuration -->
+      <div class="card panel-config">
+        <h2>1. Campaign Settings</h2>
+        
+        <form id="campaignForm">
+          <div class="form-group">
+            <label for="sender_email">Gmail Address</label>
+            <input type="email" id="sender_email" name="sender_email" required placeholder="your.name@gmail.com" value="">
+          </div>
+
+          <div class="form-group">
+            <label for="app_password">Gmail App Password</label>
+            <div class="password-input-wrapper">
+              <input type="password" id="app_password" name="app_password" required placeholder="xxxx xxxx xxxx xxxx">
+              <button type="button" id="togglePassword" class="btn-icon">👁️</button>
+            </div>
+            <small class="help-text">Use a 16-character App Password. Generate one at <a href="https://myaccount.google.com/apppasswords" target="_blank">Google App Passwords</a>.</small>
+          </div>
+
+          <div class="form-group">
+            <label for="subject">Email Subject</label>
+            <input type="text" id="subject" name="subject" required placeholder="Application for position..." value="Application for Software Engineer Position">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="delay_min">Min Delay (sec)</label>
+              <input type="number" id="delay_min" name="delay_min" required min="5" value="45">
+            </div>
+            <div class="form-group">
+              <label for="delay_max">Max Delay (sec)</label>
+              <input type="number" id="delay_max" name="delay_max" required min="5" value="90">
+            </div>
+          </div>
+
+          <div class="form-group checkbox-group">
+            <input type="checkbox" id="dry_run" name="dry_run">
+            <label for="dry_run">Dry Run Mode <span class="badge">Safe Test</span></label>
+            <p class="checkbox-desc">Logs campaign actions and runs logic without sending actual emails</p>
+          </div>
+        </form>
+      </div>
+
+      <!-- Right Column: Files & Template -->
+      <div class="card panel-files-template">
+        <h2>2. Data & Email Template</h2>
+
+        <!-- File Upload Section -->
+        <div class="file-uploads-container">
+          <div class="drop-zone" id="dropZoneHr">
+            <span class="drop-icon">📄</span>
+            <p class="drop-title">HR Contacts list (PDF)</p>
+            <p class="drop-desc">Drag & drop PDF here</p>
+            <span class="file-status" id="statusHr">No file uploaded</span>
+          </div>
+
+          <div class="drop-zone" id="dropZoneResume">
+            <span class="drop-icon">📎</span>
+            <p class="drop-title">Resume PDF</p>
+            <p class="drop-desc">Drag & drop PDF here</p>
+            <span class="file-status" id="statusResume">No file uploaded</span>
+          </div>
+        </div>
+
+        <!-- Template Section -->
+        <div class="template-section">
+          <div class="template-header">
+            <label for="body_template">Email Template Body</label>
+            <div class="placeholder-chips">
+              <button type="button" class="chip" data-placeholder="{hr_name}">+ HR Name</button>
+              <button type="button" class="chip" data-placeholder="{company_name}">+ Company Name</button>
+            </div>
+          </div>
+          <textarea id="body_template" name="body_template" rows="12" placeholder="Write your letter template here... Use the chips above to insert personalization fields."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Execution Status Card -->
+    <div class="card panel-execution full-width">
+      <div class="execution-header">
+        <h2>3. Campaign Execution</h2>
+        <div class="execution-actions">
+          <button type="button" id="btnStart" class="btn btn-primary">▶ Start Campaign</button>
+          <button type="button" id="btnStop" class="btn btn-danger" disabled>⏸ Pause Campaign</button>
+        </div>
+      </div>
+
+      <!-- Live metrics -->
+      <div class="metrics-grid">
+        <div class="metric-box">
+          <span class="metric-label">Status</span>
+          <span class="metric-value status-badge idle" id="metricStatus">IDLE</span>
+        </div>
+        <div class="metric-box">
+          <span class="metric-label">Progress</span>
+          <span class="metric-value" id="metricProgress">0%</span>
+        </div>
+        <div class="metric-box">
+          <span class="metric-label">Sent</span>
+          <span class="metric-value text-success" id="metricSent">0</span>
+        </div>
+        <div class="metric-box">
+          <span class="metric-label">Failed</span>
+          <span class="metric-value text-danger" id="metricFailed">0</span>
+        </div>
+      </div>
+
+      <div class="progress-bar-wrapper">
+        <div class="progress-bar-fill" id="progressBar"></div>
+      </div>
+
+      <!-- Scrolling log terminal -->
+      <div class="terminal-wrapper">
+        <div class="terminal-header">
+          <span class="terminal-dot red"></span>
+          <span class="terminal-dot yellow"></span>
+          <span class="terminal-dot green"></span>
+          <span class="terminal-title">campaign_output.log</span>
+        </div>
+        <div class="terminal-body" id="terminalLogs">
+          <div class="terminal-line system">[system] Welcome. Upload lists and click Start Campaign.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
